@@ -1,24 +1,23 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getJwtSecret } from '@/lib/jwt-secret';
 
-export async function middleware(req) {
+export async function proxy(req) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get('token')?.value;
+  const secret = getJwtSecret();
 
   let user = null;
   if (token) {
     try {
-      const { payload } = await jwtVerify(
-        token,
-        new TextEncoder().encode(process.env.JWT_SECRET)
-      );
+      const { payload } = await jwtVerify(token, secret);
       user = payload;
     } catch {}
   }
 
   const go = (path) => NextResponse.redirect(new URL(path, req.url));
   const home = user?.role === 'admin' ? '/admin' : '/kasir';
-  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isAuthPage = pathname === '/login';
 
   if (pathname === '/') return go(user ? home : '/login');
   if (!user && !isAuthPage) return go('/login');
@@ -30,5 +29,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/register', '/admin/:path*', '/kasir/:path*'],
+  matcher: ['/', '/login', '/admin/:path*', '/kasir/:path*'],
 };

@@ -1,16 +1,19 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains('dark'));
-  }, []);
+  const dark = useSyncExternalStore(
+    (onChange) => {
+      const observer = new MutationObserver(onChange);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      return () => observer.disconnect();
+    },
+    () => document.documentElement.classList.contains('dark'),
+    () => false
+  );
 
   function toggle() {
-    const next = !dark;
-    setDark(next);
+    const next = !document.documentElement.classList.contains('dark');
     document.documentElement.classList.toggle('dark', next);
     try { localStorage.setItem('theme', next ? 'dark' : 'light'); } catch {}
   }

@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import AuthLayout from '@/components/AuthLayout';
 
 export default function LoginPage() {
@@ -30,7 +29,6 @@ export default function LoginPage() {
     <AuthLayout
       title="Selamat datang 👋"
       subtitle="Masuk untuk melanjutkan ke aplikasi kasir."
-      footer={<>Kasir baru? <Link href="/register" className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400">Daftar di sini</Link></>}
     >
       <form onSubmit={submit} className="space-y-4">
         {error && <div className="alert-error">{error}</div>}

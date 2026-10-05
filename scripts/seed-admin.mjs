@@ -1,6 +1,16 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 
+const username = process.env.ADMIN_USERNAME?.trim();
+const password = process.env.ADMIN_PASSWORD;
+
+if (!username) {
+  throw new Error('ADMIN_USERNAME wajib diisi.');
+}
+if (typeof password !== 'string' || password.length < 8) {
+  throw new Error('ADMIN_PASSWORD wajib diisi dan minimal 8 karakter.');
+}
+
 const conn = await mysql.createConnection({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 3306),
@@ -9,14 +19,15 @@ const conn = await mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
-const hash = await bcrypt.hash('admin123', 10);
+try {
+  const hash = await bcrypt.hash(password, 10);
 
-await conn.query(
-  `INSERT INTO users (nama, username, password, role)
-   VALUES (?, ?, ?, 'admin')
-   ON DUPLICATE KEY UPDATE password = VALUES(password)`,
-  ['Administrator', 'admin', hash]
-);
-
-console.log('Admin dibuat -> username: admin | password: admin123');
-await conn.end();
+  await conn.query(
+    `INSERT INTO users (nama, username, password, role)
+     VALUES (?, ?, ?, 'admin')
+     ON DUPLICATE KEY UPDATE password = VALUES(password)`,
+    ['Administrator', username, hash]
+  );
+} finally {
+  await conn.end();
+}
